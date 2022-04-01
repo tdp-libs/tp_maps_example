@@ -30,14 +30,20 @@ void buildExample(tp_maps::Map* map)
   linesLayer = new tp_maps::LinesLayer();
   map->addLayer(linesLayer);
 
-  std::vector<tp_maps::Geometry3D> geometry;
-  auto& mesh = geometry.emplace_back().geometry;
+  std::vector<tp_math_utils::Light> lights;
+  lights.emplace_back().ambient = {1.0f, 1.0f, 1.0f};
+  map->setLights(lights);
+
+  std::vector<tp_math_utils::Geometry3D> geometry;
+  auto& mesh = geometry.emplace_back();
   mesh = tp_math_utils::Sphere::octahedralClass1(6.0,
                                                  4,
                                                  GL_TRIANGLE_FAN,
                                                  GL_TRIANGLE_STRIP,
                                                  GL_TRIANGLES);
   mesh.calculateFaceNormals();
+
+  mesh.material.albedo = {0.2f, 0.2f, 0.8f};
 
   geometryLayer->setGeometry(geometry);
   linesLayer->setLinesFromGeometry(geometry);
@@ -47,14 +53,15 @@ void buildExample(tp_maps::Map* map)
   controller->setVariableViewAngle(false);
   controller->setAllowTranslation(false);
 
-  geometryLayer->animateCallbacks.addCallback([=](double t)
+  map->animateCallbacks.addCallback([=](double t)
   {
+    TP_UNUSED(t);
     (*rotation)+=1;
     (*rotation)%=360;
     glm::mat4 m{1.0f};
     m = glm::rotate(m, glm::radians(float(*rotation)), glm::vec3(0.0, 1.0, 0.0));
-    geometryLayer->setObjectMatrix(m);
-    linesLayer->setObjectMatrix(m);
+    geometryLayer->setModelMatrix(m);
+    linesLayer->setModelMatrix(m);
   });
 }
 
